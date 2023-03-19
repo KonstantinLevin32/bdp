@@ -1,0 +1,30 @@
+robot_id: "AGENT_0"
+name: "HierarchicalPolicy"
+should_call_stop: False
+batch_dup: 1
+high_level_policy:
+  name: "GtHighLevelPolicy"
+  add_resets_between: False
+
+  min_batch_size: -1
+  num_waits: 5
+
+  hidden_dim: 128
+  rnn_type: 'LSTM'
+  backbone: resnet18
+  normalize_visual_inputs: False
+  num_rnn_layers: 1
+  add_wait_at_end: False
+
+  solution: 
+    - nav_to_receptacle(cab_push_point_5, ROBOT_1)
+    - open_cab(cab_push_point_5, ROBOT_1)
+    - pick(bowl_target|0, ROBOT_1)
+    - nav(TARGET_bowl_target|0, ROBOT_1)
+    - place(bowl_target|0, TARGET_bowl_target|0, ROBOT_1)
+    # - nav_to_receptacle(fridge_push_point, ROBOT_0)
+    # - open_fridge(fridge_push_point, ROBOT_0)
+    # - nav(fruit_target|1, ROBOT_0)
+    # - pick(fruit_target|1, ROBOT_0)
+    # - nav(TARGET_fruit_target|1, ROBOT_0)
+    # - place(fruit_target|1, TARGET_fruit_target|1, ROBOT_0)

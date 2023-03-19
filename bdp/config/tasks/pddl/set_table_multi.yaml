@@ -1,0 +1,97 @@
+objects:
+  - name: bowl_target|0
+    expr_type: rigid_obj_type
+  - name: TARGET_bowl_target|0
+    expr_type: goal_type
+  - name: fruit_target|1
+    expr_type: rigid_obj_type
+  - name: TARGET_fruit_target|1
+    expr_type: goal_type
+  - name: ROBOT_0
+    expr_type: robot_type
+  - name: ROBOT_1
+    expr_type: robot_type
+
+init:
+  - closed_fridge(fridge_push_point)
+  - closed_cab(cab_push_point_5)
+
+goal:
+  expr_type: AND
+  sub_exprs:
+    - at(bowl_target|0,TARGET_bowl_target|0)
+    - at(fruit_target|1,TARGET_fruit_target|1)
+
+stage_goals:
+  # For the bowl
+  stage_bowl_1:
+    expr_type: AND
+    quantifier: EXISTS
+    inputs:
+      - name: robot
+        expr_type: robot_type
+    sub_exprs:
+      - robot_at(cab_push_point_5, robot)
+  stage_bowl_2:
+    expr_type: AND
+    sub_exprs:
+      - opened_cab(cab_push_point_5)
+  stage_bowl_3:
+    expr_type: AND
+    quantifier: EXISTS
+    inputs:
+      - name: robot
+        expr_type: robot_type
+    sub_exprs:
+      - holding(bowl_target|0, robot)
+  stage_bowl_4:
+    expr_type: AND
+    quantifier: EXISTS
+    inputs:
+      - name: robot
+        expr_type: robot_type
+    sub_exprs:
+      - holding(bowl_target|0, robot)
+      - robot_at(TARGET_bowl_target|0, robot)
+  stage_bowl_5:
+    expr_type: AND
+    sub_exprs:
+    - at(bowl_target|0,TARGET_bowl_target|0)
+
+  # For the fruit
+  stage_fruit_1:
+    expr_type: AND
+    quantifier: EXISTS
+    inputs:
+      - name: robot
+        expr_type: robot_type
+    sub_exprs:
+      - robot_at(fridge_push_point, robot)
+  stage_fruit_2:
+    expr_type: AND
+    sub_exprs:
+      - opened_fridge(fridge_push_point)
+  stage_fruit_3:
+    expr_type: AND
+    quantifier: EXISTS
+    inputs:
+      - name: robot
+        expr_type: robot_type
+    sub_exprs:
+      - holding(fruit_target|1, robot)
+  stage_fruit_4:
+    expr_type: AND
+    quantifier: EXISTS
+    inputs:
+      - name: robot
+        expr_type: robot_type
+    sub_exprs:
+      - holding(fruit_target|1, robot)
+      - robot_at(TARGET_fruit_target|1, robot)
+  stage_fruit_5:
+    expr_type: AND
+    sub_exprs:
+    - at(fruit_target|1,TARGET_fruit_target|1)
+
+
+solution: []

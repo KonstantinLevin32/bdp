@@ -1,0 +1,23 @@
+robot_id: "AGENT_0"
+name: "HierarchicalPolicy"
+should_call_stop: False
+batch_dup: 1
+high_level_policy:
+  name: "GtHighLevelPolicy"
+  add_resets_between: False
+
+  min_batch_size: -1
+  num_waits: 5
+
+  hidden_dim: 128
+  rnn_type: 'LSTM'
+  backbone: resnet18
+  normalize_visual_inputs: False
+  num_rnn_layers: 1
+  add_wait_at_end: False
+
+  solution: 
+    - nav(obj0_target|0, ROBOT_1)
+    - pick(obj0_target|0, ROBOT_1)
+    - nav(TARGET_obj0_target|0, ROBOT_1)
+    - place(obj0_target|0, TARGET_obj0_target|0, ROBOT_1)
