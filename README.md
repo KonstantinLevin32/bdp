@@ -32,7 +32,7 @@ Commands for running our proposed BDP method and baselines are below.
 * BDP: `python bdp/run.py --exp-config bdp/config/hab/bdp.yaml --run-type train`
 * PBT: `python bdp/run.py --exp-config bdp/config/hab/pbt.yaml --run-type train`
 * SP: `python bdp/run.py --exp-config bdp/config/hab/sp.yaml --run-type train`
-* TrajeDi: `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train`
+* TrajeDi: `python bdp/run.py --exp-config bdp/config/hab/trajedi.yaml --run-type train`
 * FCP `python bdp/run.py --exp-config bdp/config/hab/fcp.yaml --run-type train RL.AGENT_SAMPLER.LOAD_POP_CKPT pretrained_pop.ckpt` Replace the `LOAD_POP_CKPT` argument with the path to a pre-trained population checkpoint `.ckpt` file.
 
 To run with different tasks, add command line arguments `TASK_CONFIG.DATASET.DATA_PATH data/datasets/replica_cad/rearrange/v1/train/tidy_house_10k_1k.json.gz TASK_CONFIG.TASK.TASK_SPEC tidy_house_multi` where `tidy_house` can be replaced with `prepare_groceries` or `set_table`.
