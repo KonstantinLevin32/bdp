@@ -18,7 +18,7 @@ WRITER_TYPE: 'tb'
 SENSORS: ["HEAD_DEPTH_SENSOR"]
 CHECKPOINT_FOLDER: "data/new_checkpoints"
 NUM_UPDATES: -1
-TOTAL_NUM_STEPS: 5.0e7
+TOTAL_NUM_STEPS: 2e8
 LOG_INTERVAL: 5
 NUM_CHECKPOINTS: 20
 FORCE_TORCH_SINGLE_THREADED: True
@@ -67,11 +67,11 @@ RL:
     POINTS_WINDOW_SIZE: -1
 
   AGENT_SAMPLER: 
-    TYPE: "PopulationPlayAgentSampler"
+    TYPE: "PrefPlayAgentSampler"
     # The number of updates between checkpoint intervals
     SAMPLE_INTERVAL: 20
     NUM_SAMPLE_AGENTS: 2
-    SECOND_STAGE_START: -1.0
+    SECOND_STAGE_START: 1e8
     ALLOW_SELF_SAMPLE: True
     # ONLY APPLIES TO THE evaluation.
     ONLY_SELF_SAMPLE: False
@@ -80,14 +80,14 @@ RL:
     FIX_AGENT_B: -1
 
     # Pop play params
-    REUSE_VISUAL_ENCODER: False
+    REUSE_VISUAL_ENCODER: True
     FORCE_CPU: False
     NUM_AGENTS: 2
     SELF_PLAY: False
 
     # Pref play params
     LIMIT_AGENT_SAMPLES: -1
-    PREF_DIM: 16
+    PREF_DIM: 8
     LOAD_POP_CKPT: ""
     PREF_SELF_PLAY: False
     UPDATE_BOTH_IN_SECOND_STAGE: False
@@ -113,7 +113,7 @@ RL:
       robot_id: "AGENT_0"
       name: "TrainableHierarchicalPolicy"
       should_call_stop: False
-      batch_dup: 1
+      batch_dup: 2
 
       high_level_policy:
         name: "NnHighLevelPolicy"
@@ -123,12 +123,12 @@ RL:
         replan_once: False
         allow_other_place: False
 
-        PREF_DIM: -1
+        PREF_DIM: 8
         OTHER_PREF_DIM: -1
         N_AGENTS: -1
 
         # Pref discrim
-        use_pref_discrim: False
+        use_pref_discrim: True
         pref_discrim:
           in_keys: 
             - "action_history"
@@ -316,7 +316,7 @@ RL:
     # ppo params
     clip_param: 0.2
     ppo_epoch: 2
-    num_mini_batch: 2
+    num_mini_batch: 4
     value_loss_coef: 0.5
     entropy_coef: 0.001
     lr: 3e-4

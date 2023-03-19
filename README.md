@@ -12,11 +12,27 @@ Steps for installing on Linux:
     * `pip install -e .`
 * Download datasets: `python -m habitat_sim.utils.datasets_download --uids rearrange_task_assets`
 
+# Directory Structure
+* `bdp/`: Contains all the task code, trainer code, and configuration files.
+    * `task/`: The sensor and measurement definitions for the Social Rearrangement task.
+    * `rl/`: All trainer code.
+        * `ddppo/`: Distributed PPO updater.
+        * `hrl/`: Code for the HRL policy and skills.
+        * `multi_agent/`: Multi-agent sampling strategies.
+        * `ppo_trainer.py`: Main training loop.
+    * `config/`: YAML configuration files.
+        * `hab/`: Config files for different approaches.
+        * `hc_agents/`: Config files defining behavior of hard coded ZSC evaluation agents.
+        * `tasks`: Task definition config files for Social Rearrangement tasks.
+    * `utils/`: Shared modules for policies and visualization utilities.
+    * `common/`: Shared modules for the RL trainer.
+
 # Run Commands
-Commands for running our proposed BDP method and baselines are below. To run with state instead of visual input, replace `im.yaml` with `st.yaml`. To run with different tasks, add command line arguments `TASK_CONFIG.DATASET.DATA_PATH data/datasets/replica_cad/rearrange/v1/train/tidy_house_10k_1k.json.gz TASK_CONFIG.TASK.TASK_SPEC tidy_house_multi` where `tidy_house` can be replaced with `prepare_groceries` or `set_table`.
-* BDP: `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train WRITER_TYPE wb RL.AGENT_SAMPLER.TYPE "PrefPlayAgentSampler" RL.POLICIES.POLICY_0.batch_dup 2 RL.PPO.num_mini_batch 4 RL.POLICIES.POLICY_0.high_level_policy.PREF_DIM 8 RL.AGENT_SAMPLER.PREF_DIM 8 TOTAL_NUM_STEPS 2e8 RL.AGENT_SAMPLER.SECOND_STAGE_START 1e8 RL.AGENT_SAMPLER.REUSE_VISUAL_ENCODER True RL.POLICIES.POLICY_0.high_level_policy.use_pref_discrim True`
-* PBT: `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train WRITER_TYPE wb RL.AGENT_SAMPLER.NUM_AGENTS 9 RL.AGENT_SAMPLER.SECOND_STAGE_START 1e8 TOTAL_NUM_STEPS 2e8`
-* SP: `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train WRITER_TYPE wb RL.AGENT_SAMPLER.NUM_AGENTS 9 RL.AGENT_SAMPLER.SECOND_STAGE_START 1e8 TOTAL_NUM_STEPS 2e8 RL.AGENT_SAMPLER.ONLY_SELF_SAMPLE True RL.AGENT_TRACKER.RENDER_SELF True RL.AGENT_SAMPLER.SELF_PLAY True`
-* TrajeDi: `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train WRITER_TYPE wb RL.AGENT_SAMPLER.NUM_AGENTS 9 RL.AGENT_SAMPLER.SECOND_STAGE_START 1e8 TOTAL_NUM_STEPS 2e8 RL.POLICIES.POLICY_0.high_level_policy.div_reward True`
-* FCP (replace `LOAD_POP_CKPT` argument with the path to a pre-trained population checkpoint): `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train WRITER_TYPE wb RL.AGENT_SAMPLER.NUM_AGENTS 9 RL.AGENT_SAMPLER.SECOND_STAGE_START 0.0 TOTAL_NUM_STEPS 2e8 RL.AGENT_SAMPLER.LOAD_POP_CKPT im_pp8_st_I88d77ccb RL.AGENT_SAMPLER.FORCE_CPU True`
+Commands for running our proposed BDP method and baselines are below. 
+* BDP: `python bdp/run.py --exp-config bdp/config/hab/bdp.yaml --run-type train`
+* PBT: `python bdp/run.py --exp-config bdp/config/hab/pbt.yaml --run-type train`
+* SP: `python bdp/run.py --exp-config bdp/config/hab/sp.yaml --run-type train`
+* TrajeDi: `python bdp/run.py --exp-config bdp/config/hab/im.yaml --run-type train`
+* FCP `python bdp/run.py --exp-config bdp/config/hab/fcp.yaml --run-type train RL.AGENT_SAMPLER.LOAD_POP_CKPT pretrained_pop.ckpt` Replace the `LOAD_POP_CKPT` argument with the path to a pre-trained population checkpoint `.ckpt` file.
+To run with different tasks, add command line arguments `TASK_CONFIG.DATASET.DATA_PATH data/datasets/replica_cad/rearrange/v1/train/tidy_house_10k_1k.json.gz TASK_CONFIG.TASK.TASK_SPEC tidy_house_multi` where `tidy_house` can be replaced with `prepare_groceries` or `set_table`.
 

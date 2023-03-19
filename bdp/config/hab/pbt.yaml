@@ -1,0 +1,362 @@
+VERBOSE: False
+BASE_TASK_CONFIG_PATH: bdp/config/tasks/base.yaml
+TRAINER_NAME: "ddppo"
+ENV_NAME: "RearrangeRLEnv"
+SIMULATOR_GPU_ID: 0
+TORCH_GPU_ID: 0
+VIDEO_OPTION: ["disk"]
+TENSORBOARD_DIR: "tb"
+VIDEO_DIR: "video_dir"
+VIDEO_FPS: 30
+VIDEO_RENDER_TOP_DOWN: False
+VIDEO_RENDER_ALL_INFO: True
+TEST_EPISODE_COUNT: -1
+EVAL_CKPT_PATH_DIR: null
+NUM_ENVIRONMENTS: 32
+WRITER_TYPE: 'tb'
+# Visual sensors to include
+SENSORS: ["HEAD_DEPTH_SENSOR"]
+CHECKPOINT_FOLDER: "data/new_checkpoints"
+NUM_UPDATES: -1
+TOTAL_NUM_STEPS: 2e8
+LOG_INTERVAL: 5
+NUM_CHECKPOINTS: 20
+FORCE_TORCH_SINGLE_THREADED: True
+EVAL_KEYS_TO_INCLUDE_IN_NAME: ['composite_success']
+EVAL:
+  SPLIT: "val"
+  USE_CKPT_CONFIG: False
+  SHOULD_LOAD_CKPT: True
+
+RL:
+  MA_VIS:
+    # This is for evaluation
+    LOG_INTERVAL: -1
+
+  AGENT_TRACKER:
+    LOG_INTERVAL: -1
+    LOG_KEYS:
+      - "count"
+      - "composite_success"
+    RENAME_MAP:
+      "stage_0_5": "Pick Obj0"
+      "stage_1": "Place Obj0"
+      "stage_1_5": "Pick Obj1"
+      "stage_2": "Place Obj1"
+
+      "composite_success": "Success"
+      "stage_bowl_2": "Open Cab"
+      "stage_bowl_3": "Pick Bowl"
+      "stage_bowl_5": "Place Bowl"
+      "stage_fruit_2": "Open Fridge"
+      "stage_fruit_3": "Pick Fruit"
+      "stage_fruit_5": "Place Fruit"
+
+    # Plotting options
+    CMAP: "Reds"
+    TRAIN_CMAP: "Reds"
+    ZSC_CMAP: "Greens"
+    SUCC_CMAP: "Blues"
+    EVENT_NAME: "Event (E)"
+    BLAME_NAME: "$\\mathbb{P}(E = 1)$"
+
+    IGNORE_SUBGOALS: ['bowl_1', 'bowl_4', 'fruit_1', 'fruit_4']
+    RENDER_SELF: False
+    WINDOW_SIZE: 100
+    TRAJ_WINDOW_SIZE: -1
+    POINTS_WINDOW_SIZE: -1
+
+  AGENT_SAMPLER: 
+    TYPE: "PopulationPlayAgentSampler"
+    # The number of updates between checkpoint intervals
+    SAMPLE_INTERVAL: 20
+    NUM_SAMPLE_AGENTS: 2
+    SECOND_STAGE_START: 1e8
+    ALLOW_SELF_SAMPLE: True
+    # ONLY APPLIES TO THE evaluation.
+    ONLY_SELF_SAMPLE: False
+    SINGLE_UPDATE: True
+    FIX_AGENT_A: -1
+    FIX_AGENT_B: -1
+
+    # Pop play params
+    REUSE_VISUAL_ENCODER: False
+    FORCE_CPU: False
+    NUM_AGENTS: 9
+    SELF_PLAY: False
+
+    # Pref play params
+    LIMIT_AGENT_SAMPLES: -1
+    PREF_DIM: 16
+    LOAD_POP_CKPT: ""
+    PREF_SELF_PLAY: False
+    UPDATE_BOTH_IN_SECOND_STAGE: False
+
+    # Evaluation 
+    EVAL_CKPT_A: ""
+    EVAL_CKPT_B: ""
+    EVAL_IDX_A: 0
+    EVAL_IDX_B: 0
+    AGENT_A_NAME: ""
+    AGENT_B_NAME: ""
+
+  POLICY:
+    OBS_TRANSFORMS:
+      ENABLED_TRANSFORMS: ['AddVirtualKeys']
+      ADD_VIRTUAL_KEYS:
+        "nav_to_skill": 8
+        "object_to_agent_gps_compass": 2
+        "marker_rel_pos": 3
+        "marker_js": 2
+  POLICIES:
+    POLICY_0:
+      robot_id: "AGENT_0"
+      name: "TrainableHierarchicalPolicy"
+      should_call_stop: False
+      batch_dup: 1
+
+      high_level_policy:
+        name: "NnHighLevelPolicy"
+        use_rnn: True
+        use_normalized_advantage: False
+        replan_dist: -1.0
+        replan_once: False
+        allow_other_place: False
+
+        PREF_DIM: -1
+        OTHER_PREF_DIM: -1
+        N_AGENTS: -1
+
+        # Pref discrim
+        use_pref_discrim: False
+        pref_discrim:
+          in_keys: 
+            - "action_history"
+            # - "localization_sensor"
+          hidden_dim: 128
+          lr: 0.0003
+          reward_weight: 0.0001
+          buffer_size: 100_000
+          batch_size: 256
+          num_epochs: 1
+          wait_ratio: 0.5
+        div_reward: False
+        use_aux_reward: False
+        use_aux_pred: False
+        aux_reward_weight: 0.0001
+        aux_pred:
+          weight: 0.5
+
+        use_obs_keys: 
+          - "robot_head_depth"
+          - "is_holding"
+          - "rel_pos_sensor"
+          - "multi_robot_rel_obj_pos"
+        min_batch_size: -1
+
+        hidden_dim: 128
+        rnn_type: 'LSTM'
+        backbone: resnet18
+        normalize_visual_inputs: False
+        num_rnn_layers: 1
+
+        solution: []
+  SKILL_OVERRIDES: {}
+
+  DEFINED_SKILLS:
+    NN_OPEN_CAB:
+      skill_name: "ArtObjSkillPolicy"
+      name: "PointNavResNetPolicy"
+      action_distribution_type: "gaussian"
+      AT_RESTING_THRESHOLD: 0.15
+      OBS_SKILL_INPUTS: []
+      LOAD_CKPT_FILE: "data/models/open_cab.pth"
+      MAX_SKILL_STEPS: 200
+      START_ZONE_RADIUS: 0.3
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 1
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+    # NN_CLOSE_CAB:
+    #   skill_name: "ArtObjSkillPolicy"
+    #   name: "PointNavResNetPolicy"
+    #   action_distribution_type: "gaussian"
+    #   AT_RESTING_THRESHOLD: 0.15
+    #   OBS_SKILL_INPUTS: []
+    #   LOAD_CKPT_FILE: "data/models/close_cab.pth"
+    #   MAX_SKILL_STEPS: 200
+    #   START_ZONE_RADIUS: 0.3
+    #   FORCE_END_ON_TIMEOUT: False
+    #   MAX_SKILL_STEPS: 1
+    #   skill_name: "NoopSkillPolicy"
+    #   apply_postconds: True
+
+    NN_OPEN_FRIDGE:
+      skill_name: "ArtObjSkillPolicy"
+      name: "PointNavResNetPolicy"
+      action_distribution_type: "gaussian"
+      AT_RESTING_THRESHOLD: 0.15
+      OBS_SKILL_INPUTS: []
+      LOAD_CKPT_FILE: "data/models/open_fridge.pth"
+      MAX_SKILL_STEPS: 200
+      START_ZONE_RADIUS: 0.3
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 1
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+    # NN_CLOSE_FRIDGE:
+    #   skill_name: "ArtObjSkillPolicy"
+    #   name: "PointNavResNetPolicy"
+    #   action_distribution_type: "gaussian"
+    #   AT_RESTING_THRESHOLD: 0.15
+    #   OBS_SKILL_INPUTS: []
+    #   LOAD_CKPT_FILE: "data/models/close_fridge.pth"
+    #   MAX_SKILL_STEPS: 200
+    #   START_ZONE_RADIUS: 0.3
+    #   FORCE_END_ON_TIMEOUT: False
+    #   MAX_SKILL_STEPS: 1
+    #   skill_name: "NoopSkillPolicy"
+    #   apply_postconds: True
+
+    NN_PICK:
+      skill_name: "PickSkillPolicy"
+      name: "PointNavResNetPolicy"
+      action_distribution_type: "gaussian"
+      AT_RESTING_THRESHOLD: 0.15
+      OBS_SKILL_INPUTS: ["obj_start_sensor"]
+      LOAD_CKPT_FILE: "data/models/pick.pth"
+      MAX_SKILL_STEPS: 200
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 1
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+    NN_PLACE:
+      skill_name: "PlaceSkillPolicy"
+      name: "PointNavResNetPolicy"
+      action_distribution_type: "gaussian"
+      AT_RESTING_THRESHOLD: 0.15
+      OBS_SKILL_INPUTS: ["obj_goal_sensor"]
+      LOAD_CKPT_FILE: "data/models/place.pth"
+      MAX_SKILL_STEPS: 200
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 1
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+    GT_NAV:
+      skill_name: "OracleNavPolicy"
+      OBS_SKILL_INPUTS: ["obj_start_sensor", "abs_obj_start_sensor", "obj_goal_sensor", "abs_obj_goal_sensor"]
+      GOAL_SENSORS: ["obj_goal_sensor", "abs_obj_goal_sensor"]
+      NAV_ACTION_NAME: "BASE_VELOCITY"
+      MAX_SKILL_STEPS: 300
+      FORCE_END_ON_TIMEOUT: True
+      STOP_THRESH: 0.001
+      apply_postconds: False
+
+    WAIT_SKILL:
+      skill_name: "WaitSkillPolicy"
+      MAX_SKILL_STEPS: -1
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 1
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+    NOOP_SKILL:
+      skill_name: "WaitSkillPolicy"
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 10
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+    TURN_LEFT_SKILL:
+      skill_name: "TurnSkillPolicy"
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 5
+      TURN_STEPS: 1
+      TURN_POWER: 1.0
+      apply_postconds: True
+
+    TURN_RIGHT_SKILL:
+      skill_name: "TurnSkillPolicy"
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 5
+      TURN_STEPS: 1
+      TURN_POWER: -1.0
+      apply_postconds: True
+
+    RESET_ARM_SKILL:
+      skill_name: "ResetArmSkill"
+      MAX_SKILL_STEPS: 50
+      RESET_JOINT_STATE: [-4.5003259e-01, -1.0799699e00, 9.9526465e-02, 9.3869519e-01, -7.8854430e-04, 1.5702540e00, 4.6168058e-03]
+      FORCE_END_ON_TIMEOUT: False
+      MAX_SKILL_STEPS: 1
+      skill_name: "NoopSkillPolicy"
+      apply_postconds: True
+
+  USE_SKILLS:
+    open_fridge: "NN_OPEN_FRIDGE"
+    open_cab: "NN_OPEN_CAB"
+    noop: "NOOP_SKILL"
+    turn_left: "TURN_LEFT_SKILL"
+    turn_right: "TURN_RIGHT_SKILL"
+    # close_cab: "NN_CLOSE_CAB"
+    # close_fridge: "NN_CLOSE_FRIDGE"
+    pick: "NN_PICK"
+    place: "NN_PLACE"
+    nav: "GT_NAV"
+    nav_to_receptacle: "GT_NAV"
+    reset_arm: "RESET_ARM_SKILL"
+    wait: "WAIT_SKILL"
+
+
+  PPO:
+    # ppo params
+    clip_param: 0.2
+    ppo_epoch: 2
+    num_mini_batch: 2
+    value_loss_coef: 0.5
+    entropy_coef: 0.001
+    lr: 3e-4
+    eps: 1e-5
+    max_grad_norm: 0.2
+    num_steps: 128
+    use_gae: True
+    gamma: 0.99
+    tau: 0.95
+    use_linear_clip_decay: False
+    use_linear_lr_decay: False
+    reward_window_size: 50
+
+    use_normalized_advantage: False
+
+    # This must be the same as under the NN policy
+    hidden_size: 128
+
+    # Use double buffered sampling, typically helps
+    # when environment time is similar or large than
+    # policy inference time during rollout generation
+    use_double_buffered_sampler: False
+
+  DDPPO:
+    sync_frac: 0.6
+    # The PyTorch distributed backend to use
+    distrib_backend: NCCL
+    # Visual encoder backbone
+    pretrained_weights: data/ddppo-models/gibson-2plus-resnet50.pth
+    # Initialize with pretrained weights
+    pretrained: False
+    # Initialize just the visual encoder backbone with pretrained weights
+    pretrained_encoder: False
+    # Whether or not the visual encoder backbone will be trained.
+    train_encoder: True
+    # Whether or not to reset the critic linear layer
+    reset_critic: False
+
+    # These model parameters are not used!
+    # Model parameters
+    backbone: resnet18
+    rnn_type: LSTM
+    num_recurrent_layers: 2
